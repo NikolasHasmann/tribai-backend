@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "routes": [
+    {
+      "src": "/api/carregar",
+      "dest": "/api/carregar.js"
+    }
+  ]
+}
