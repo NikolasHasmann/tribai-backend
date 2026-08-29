@@ -1,85 +1,48 @@
-import { createClient } from '@supabase/supabase-js';
-
-// Inicializa o cliente Supabase utilizando as variáveis de ambiente
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE;
-
-let supabase = null;
-if (SUPABASE_URL && SUPABASE_SERVICE_ROLE) {
-    supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE);
-}
-
-// Código dos seus scripts que será entregue e executado na memória do cliente
+// Código base entregue para o Tampermonkey
 const CODIGO_SCRIPT_PRODUTO = `
     console.log("🟢 [TribAI Engine] Módulos autorizados e carregados com sucesso!");
-    // Aqui entrará a lógica completa unificada dos seus módulos (Farm, Coleta, Recrutamento, PP)
+    // Lógica dos seus scripts unificados entra aqui
 `;
 
-export default async function handler(req, res) {
-    // Configura os cabeçalhos CORS para autorizar chamadas originadas do Tampermonkey
+export default function handler(req, res) {
+    // Configuração dos cabeçalhos CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    // Responde com sucesso a requisições de teste/pré-voo OPTIONS do navegador
+    // Responde requisições pré-voo (OPTIONS)
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
 
-    // Permite fazer um teste rápido via GET abrindo a URL no navegador
+    // Resposta de teste via navegador (GET)
     if (req.method === 'GET') {
         return res.status(200).json({ 
             status: "online", 
-            mensagem: "API TribAI Backend operacional. Envie um POST para carregar os scripts." 
+            mensagem: "API TribAI Backend operacional. Envie um POST para validar." 
         });
     }
 
-    // Processa o pedido de autorização vindo do Loader (POST)
+    // Processamento da validação de licença via Tampermonkey (POST)
     if (req.method === 'POST') {
         try {
-            // Garante o parse do corpo da requisição
             const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-            const { license_key, player_name, world } = body;
+            const { license_key } = body;
 
             if (!license_key) {
                 return res.status(400).send("Chave de licença não fornecida.");
             }
 
-            // Se o Supabase estiver configurado, realiza a checagem no banco de dados
-            if (supabase) {
-                const { data: licenca, error } = await supabase
-                    .from('licencas')
-                    .select('*')
-                    .eq('chave_licenca', license_key)
-                    .single();
-
-                if (error || !licenca) {
-                    return res.status(403).send("Licença inexistente.");
-                }
-
-                if (licenca.status !== 'ativo') {
-                    return res.status(403).send("Licença inativa ou suspensa.");
-                }
-
-                const dataAtual = new Date();
-                const dataExpiracao = new Date(licenca.expira_em);
-
-                if (dataAtual > dataExpiracao) {
-                    return res.status(403).send("Licença expirada.");
-                }
-
-                if (licenca.player_name && licenca.player_name !== player_name && licenca.player_name !== 'SeuNickNoJogo') {
-                    return res.status(403).send("Licença vinculada a outra conta.");
-                }
+            // Exemplo de chave válida temporária para testes de conexão
+            if (license_key === 'KEY-TESTE-123') {
+                res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+                return res.status(200).send(CODIGO_SCRIPT_PRODUTO);
             }
 
-            // Retorna o script para ser executado pelo Tampermonkey
-            res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-            return res.status(200).send(CODIGO_SCRIPT_PRODUTO);
+            return res.status(403).send("Licença inválida ou expirada.");
 
         } catch (err) {
-            console.error("Erro no manipulador POST:", err);
-            return res.status(500).send("Erro interno ao processar licença: " + err.message);
+            return res.status(500).send("Erro interno ao processar requisição.");
         }
     }
 
