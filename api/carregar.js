@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import JavaScriptObfuscator from 'javascript-obfuscator';
 
 // Inicializa o cliente Supabase utilizando as variáveis de ambiente
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -74,19 +73,9 @@ export default async function handler(req, res) {
                 }
             }
 
-            // Realiza a ofuscação dinâmica do código antes de enviar ao cliente
-            const scriptOfuscado = JavaScriptObfuscator.obfuscate(CODIGO_SCRIPT_PRODUTO, {
-                compact: true,
-                controlFlowFlattening: false,
-                deadCodeInjection: false,
-                stringArray: true,
-                rotateStringArray: true,
-                stringArrayEncoding: ['base64']
-            }).getObfuscatedCode();
-
-            // Retorna o código ofuscado como texto puro para ser avaliado pelo Loader
+            // Retorna o script para ser executado pelo Tampermonkey
             res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-            return res.status(200).send(scriptOfuscado);
+            return res.status(200).send(CODIGO_SCRIPT_PRODUTO);
 
         } catch (err) {
             console.error("Erro no manipulador POST:", err);
