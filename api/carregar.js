@@ -1,81 +1,98 @@
 import { createClient } from '@supabase/supabase-js';
 import JavaScriptObfuscator from 'javascript-obfuscator';
 
-// Inicializa o cliente Supabase usando as credenciais do seu projeto
+// Inicializa o cliente Supabase utilizando as variáveis de ambiente
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE;
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE);
 
-// Código dos seus scripts (futuramente pode ficar em arquivos separados ou no próprio banco)
+let supabase = null;
+if (SUPABASE_URL && SUPABASE_SERVICE_ROLE) {
+    supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE);
+}
+
+// Código dos seus scripts que será entregue e executado na memória do cliente
 const CODIGO_SCRIPT_PRODUTO = `
     console.log("🟢 [TribAI Engine] Módulos autorizados e carregados com sucesso!");
-    // AQUI ENTRARÁ A LÓGICA COMPLETA DOS SEUS 4 SCRIPTS (FARM, COLETA, RECRUTA, PP)
+    // Aqui entrará a lógica completa unificada dos seus módulos (Farm, Coleta, Recrutamento, PP)
 `;
 
 export default async function handler(req, res) {
-    // Permite chamadas de qualquer origem (CORS) para o Tampermonkey conseguir conectar
+    // Configura os cabeçalhos CORS para autorizar chamadas originadas do Tampermonkey
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+    // Responde com sucesso a requisições de teste/pré-voo OPTIONS do navegador
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
 
-    if (req.method !== 'POST') {
-        return res.status(405).json({ erro: 'Método não permitido' });
+    // Permite fazer um teste rápido via GET abrindo a URL no navegador
+    if (req.method === 'GET') {
+        return res.status(200).json({ 
+            status: "online", 
+            mensagem: "API TribAI Backend operacional. Envie um POST para carregar os scripts." 
+        });
     }
 
-    try {
-        const { license_key, player_name, world } = req.body;
+    // Processa o pedido de autorização vindo do Loader (POST)
+    if (req.method === 'POST') {
+        try {
+            // Garante o parse do corpo da requisição
+            const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+            const { license_key, player_name, world } = body;
 
-        if (!license_key || !player_name) {
-            return res.status(400).json({ erro: 'Dados incompletos' });
+            if (!license_key) {
+                return res.status(400).send("Chave de licença não fornecida.");
+            }
+
+            // Se o Supabase estiver configurado, realiza a checagem no banco de dados
+            if (supabase) {
+                const { data: licenca, error } = await supabase
+                    .from('licencas')
+                    .select('*')
+                    .eq('chave_licenca', license_key)
+                    .single();
+
+                if (error || !licenca) {
+                    return res.status(403).send("Licença inexistente.");
+                }
+
+                if (licenca.status !== 'ativo') {
+                    return res.status(403).send("Licença inativa ou suspensa.");
+                }
+
+                const dataAtual = new Date();
+                const dataExpiracao = new Date(licenca.expira_em);
+
+                if (dataAtual > dataExpiracao) {
+                    return res.status(403).send("Licença expirada.");
+                }
+
+                if (licenca.player_name && licenca.player_name !== player_name && licenca.player_name !== 'SeuNickNoJogo') {
+                    return res.status(403).send("Licença vinculada a outra conta.");
+                }
+            }
+
+            // Realiza a ofuscação dinâmica do código antes de enviar ao cliente
+            const scriptOfuscado = JavaScriptObfuscator.obfuscate(CODIGO_SCRIPT_PRODUTO, {
+                compact: true,
+                controlFlowFlattening: false,
+                deadCodeInjection: false,
+                stringArray: true,
+                rotateStringArray: true,
+                stringArrayEncoding: ['base64']
+            }).getObfuscatedCode();
+
+            // Retorna o código ofuscado como texto puro para ser avaliado pelo Loader
+            res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+            return res.status(200).send(scriptOfuscado);
+
+        } catch (err) {
+            console.error("Erro no manipulador POST:", err);
+            return res.status(500).send("Erro interno ao processar licença: " + err.message);
         }
-
-        // 1. Busca a licença no Supabase
-        const { data: licenca, error } = await supabase
-            .from('licencas')
-            .select('*')
-            .eq('chave_licenca', license_key)
-            .single();
-
-        if (error || !licenca) {
-            return res.status(403).json({ erro: 'Licença inexistente' });
-        }
-
-        // 2. Validações de Segurança (Status, Vencimento e Nick)
-        if (licenca.status !== 'ativo') {
-            return res.status(403).json({ erro: 'Licença inativa ou suspensa' });
-        }
-
-        const dataAtual = new Date();
-        const dataExpiracao = new Date(licenca.expira_em);
-
-        if (dataAtual > dataExpiracao) {
-            return res.status(403).json({ erro: 'Licença expirada' });
-        }
-
-        // Valida se a licença pertence a este player_name (ou vincula no primeiro uso)
-        if (licenca.player_name && licenca.player_name !== player_name) {
-            return res.status(403).json({ erro: 'Licença vinculada a outra conta do jogo' });
-        }
-
-        // 3. Ofuscação Dinâmica do Código
-        const scriptOfuscado = JavaScriptObfuscator.obfuscate(CODIGO_SCRIPT_PRODUTO, {
-            compact: true,
-            controlFlowFlattening: true,
-            stringArray: true,
-            rotateStringArray: true,
-            stringArrayEncoding: ['base64']
-        }).getObfuscatedCode();
-
-        // 4. Devolve o JavaScript pronto para execução em memória
-        res.setHeader('Content-Type', 'text/plain');
-        return res.status(200).send(scriptOfuscado);
-
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({ erro: 'Erro interno no servidor' });
     }
+
+    return res.status(405).json({ erro: 'Método não permitido' });
 }
