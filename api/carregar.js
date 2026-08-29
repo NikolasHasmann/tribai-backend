@@ -1,15 +1,5 @@
-// Código base entregue para o Tampermonkey
+// Código do script injetado com as interpolações escapadas para não quebrar a Template String do Node.js
 const CODIGO_SCRIPT_PRODUTO = `
-    // ==UserScript==
-// @name         Auto Coleta - TribAI Bot - Starter
-// @namespace    http://tampermonkey.net/
-// @version      1.7
-// @match        *://*.tribalwars.net/*screen=place&mode=scavenge*
-// @match        *://*.tribalwars.com.br/*screen=place&mode=scavenge*
-// @run-at       document-end
-// @grant        none
-// ==/UserScript==
-
 (function () {
     'use strict';
 
@@ -77,7 +67,7 @@ const CODIGO_SCRIPT_PRODUTO = `
                 return;
             }
             if (tempoRestante >= 0) {
-                atualizarStatusMsg(`Status: <span style="color: #008000; font-weight: bold;">LIGADO</span> (${tempoRestante}s)`);
+                atualizarStatusMsg(\`Status: <span style="color: #008000; font-weight: bold;">LIGADO</span> (\${tempoRestante}s)\`);
             }
         };
 
@@ -103,41 +93,41 @@ const CODIGO_SCRIPT_PRODUTO = `
 
         const painel = document.createElement('div');
         painel.id = 'tw-panel-scavenge';
-        painel.style.cssText = `
+        painel.style.cssText = \`
             position: relative; margin: 10px 0 15px 0; padding: 12px; background: #e3c696;
             border: 2px solid #7d5127; color: #331900; font-family: Verdana, Arial;
             font-size: 11px; z-index: 1; box-shadow: 1px 1px 4px rgba(0,0,0,0.3);
-        `;
+        \`;
 
         let checkboxesUnidadesHTML = '';
         UNIDADES_COLETA.forEach(u => {
             const checked = unidadesMarcadas[u.id] !== false ? 'checked' : '';
-            checkboxesUnidadesHTML += `
+            checkboxesUnidadesHTML += \`
                 <div style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                    <div style="height: 22px; display: flex; align-items: center; justify-content: center;" title="${u.nome}">
-                        <img src="${u.icon}" alt="${u.nome}" style="width: 18px; height: 18px; object-fit: contain;">
+                    <div style="height: 22px; display: flex; align-items: center; justify-content: center;" title="\${u.nome}">
+                        <img src="\${u.icon}" alt="\${u.nome}" style="width: 18px; height: 18px; object-fit: contain;">
                     </div>
-                    <input type="checkbox" class="tw-check-unit" data-unit="${u.id}" ${checked} style="margin-top: 4px; cursor: pointer;">
+                    <input type="checkbox" class="tw-check-unit" data-unit="\${u.id}" \${checked} style="margin-top: 4px; cursor: pointer;">
                 </div>
-            `;
+            \`;
         });
 
-        painel.innerHTML = `
+        painel.innerHTML = \`
             <div style="font-weight: bold; text-align: center; margin-bottom: 4px; border-bottom: 1px solid #7d5127; padding-bottom: 4px; font-size: 12px;">
                 Auto Coleta - TribAI Bot - Starter
             </div>
             <div id="tw-status-msg" style="text-align: left; font-size: 11px; margin-bottom: 8px;">
-                Status: ${config.ativo ? '<span style="color: #008000; font-weight: bold;">LIGADO</span>' : '<span style="color: #990000; font-weight: bold;">DESLIGADO</span>'}
+                Status: \${config.ativo ? '<span style="color: #008000; font-weight: bold;">LIGADO</span>' : '<span style="color: #990000; font-weight: bold;">DESLIGADO</span>'}
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(${UNIDADES_COLETA.length}, 1fr); gap: 4px; background: #d4b583; padding: 6px; border: 1px solid #a27a4d; margin-bottom: 10px;">
-                ${checkboxesUnidadesHTML}
+            <div style="display: grid; grid-template-columns: repeat(\${UNIDADES_COLETA.length}, 1fr); gap: 4px; background: #d4b583; padding: 6px; border: 1px solid #a27a4d; margin-bottom: 10px;">
+                \${checkboxesUnidadesHTML}
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr; gap: 4px; margin-bottom: 10px;">
                 <label style="display: flex; justify-content: space-between; align-items: center;">
                     Tempo para atualizar página (Minutos):
-                    <input type="number" id="tw-input-refresh" value="${config.refreshTimeMin}" step="0.5" min="0.1" style="width: 60px; text-align: center;">
+                    <input type="number" id="tw-input-refresh" value="\${config.refreshTimeMin}" step="0.5" min="0.1" style="width: 60px; text-align: center;">
                 </label>
             </div>
 
@@ -145,11 +135,11 @@ const CODIGO_SCRIPT_PRODUTO = `
                 <button id="tw-btn-salvar" style="flex: 1; padding: 6px; background: #4CAF50; color: #fff; font-weight: bold; border: 1px solid #2e7d32; cursor: pointer;">
                     Salvar Configurações
                 </button>
-                <button id="tw-btn-toggle" style="flex: 1; padding: 6px; background: ${config.ativo ? '#990000' : '#7d5127'}; color: #fff; font-weight: bold; border: 1px solid #331900; cursor: pointer;">
-                    ${config.ativo ? 'Desligar Bot' : 'Ligar Bot'}
+                <button id="tw-btn-toggle" style="flex: 1; padding: 6px; background: \${config.ativo ? '#990000' : '#7d5127'}; color: #fff; font-weight: bold; border: 1px solid #331900; cursor: pointer;">
+                    \${config.ativo ? 'Desligar Bot' : 'Ligar Bot'}
                 </button>
             </div>
-        `;
+        \`;
 
         const container = document.querySelector('#content_value');
         if (container) {
@@ -210,10 +200,10 @@ const CODIGO_SCRIPT_PRODUTO = `
                 return;
             }
 
-            const inputEl = document.querySelector(`input[name="${u.id}"]`) || document.querySelector(`.unitsInput[name="${u.id}"]`);
+            const inputEl = document.querySelector(\`input[name="\${u.id}"]\`) || document.querySelector(\`.unitsInput[name="\${u.id}"]\`);
             if (inputEl) {
                 const parent = inputEl.closest('div') || inputEl.parentElement;
-                const match = parent ? parent.innerText.match(/\((\d+)\)/) : null;
+                const match = parent ? parent.innerText.match(/\\((\\d+)\\)/) : null;
                 if (match) {
                     tropas[u.id] = parseInt(match[1], 10);
                 } else {
@@ -251,7 +241,7 @@ const CODIGO_SCRIPT_PRODUTO = `
             let cargaAcumulada = 0;
 
             UNIDADES_COLETA.forEach(u => {
-                const inputDOM = document.querySelector(`input[name="${u.id}"]`) || document.querySelector(`.unitsInput[name="${u.id}"]`);
+                const inputDOM = document.querySelector(\`input[name="\${u.id}"]\`) || document.querySelector(\`.unitsInput[name="\${u.id}"]\`);
                 if (!inputDOM) return;
 
                 if (!unidadesMarcadas[u.id]) {
@@ -288,7 +278,6 @@ const CODIGO_SCRIPT_PRODUTO = `
             }
         }
 
-        // Após tentar enviar as coletas, inicia a contagem para o próximo Refresh da página
         iniciarTimerRefreshGlobal();
     }
 
@@ -314,7 +303,6 @@ const CODIGO_SCRIPT_PRODUTO = `
                 return;
             }
 
-            // Se existirem coletas em andamento, não tenta enviar nada e apenas aguarda o timer do Refresh
             if (temColetaEmAndamento()) {
                 console.log('TW Bot: Coletas ainda em andamento nesta aldeia. Aguardando refresh...');
                 iniciarTimerRefreshGlobal();
@@ -333,30 +321,24 @@ const CODIGO_SCRIPT_PRODUTO = `
         }, delayAleatorio(500, 900));
     }
 
-    window.addEventListener('load', () => {
-        criarPainel();
-        if (verificarCaptcha()) return;
-
-        if (config.ativo) {
-            executarCicloColeta();
-        }
-    });
+    // Executa a inicialização do painel e ciclo de coleta diretamente
+    criarPainel();
+    if (!verificarCaptcha() && config.ativo) {
+        executarCicloColeta();
+    }
 
 })();
 `;
 
 export default function handler(req, res) {
-    // Configuração dos cabeçalhos CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    // Responde requisições pré-voo (OPTIONS)
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
 
-    // Resposta de teste via navegador (GET)
     if (req.method === 'GET') {
         return res.status(200).json({ 
             status: "online", 
@@ -364,7 +346,6 @@ export default function handler(req, res) {
         });
     }
 
-    // Processamento da validação de licença via Tampermonkey (POST)
     if (req.method === 'POST') {
         try {
             const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
@@ -374,7 +355,6 @@ export default function handler(req, res) {
                 return res.status(400).send("Chave de licença não fornecida.");
             }
 
-            // Exemplo de chave válida temporária para testes de conexão
             if (license_key === 'KEY-TESTE-123') {
                 res.setHeader('Content-Type', 'text/plain; charset=utf-8');
                 return res.status(200).send(CODIGO_SCRIPT_PRODUTO);
