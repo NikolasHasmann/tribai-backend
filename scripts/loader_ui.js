@@ -1,3 +1,16 @@
+// ==UserScript==
+// @name         TribAI Bot Starter - Engine & UI (v10.0)
+// @namespace    http://tampermonkey.net/
+// @version      10.0.0
+// @match        *://*.tribalwars.net/*
+// @match        *://*.tribalwars.com.br/*
+// @match        *://*.tribalwars.com/*
+// @match        *://*.tribalwars.pt/*
+// @connect      tribai-backend.vercel.app
+// @run-at       document-end
+// @grant        none
+// ==/UserScript==
+
 (function() {
     'use strict';
 
@@ -283,10 +296,7 @@
         }
     });
 
-    criarIconeLauncher();
-
-    // Re-tentativa de segurança caso a barra de missões do jogo demore a carregar
-    setTimeout(criarIconeLauncher, 500);
-    setTimeout(criarIconeLauncher, 1500);
-    })();
+    window.addEventListener('load', () => {
+        criarIconeLauncher();
+    });
 })();
