@@ -1,13 +1,3 @@
-// ==UserScript==
-// @name         TW - Auto Farm Pro [Módulo 7.2.0 - Title Timer & UI Polish]
-// @namespace    http://tampermonkey.net/
-// @version      7.2.0
-// @match        *://*.tribalwars.net/*screen=am_farm*
-// @match        *://*.tribalwars.com.br/*screen=am_farm*
-// @run-at       document-end
-// @grant        none
-// ==/UserScript==
-
 (function() {
     'use strict';
 
