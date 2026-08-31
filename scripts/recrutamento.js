@@ -1,13 +1,3 @@
-// ==UserScript==
-// @name         TW - Auto Recruit (Status em Tempo Real & Checagem de Fazenda v23.0)
-// @namespace    http://tampermonkey.net/
-// @version      23.0
-// @match        *://*.tribalwars.net/*screen=train
-// @match        *://*.tribalwars.com.br/*screen=train
-// @run-at       document-end
-// @grant        none
-// ==/UserScript==
-
 (function() {
     'use strict';
 
@@ -239,52 +229,72 @@
             });
         });
 
-        document.getElementById('tw-input-refresh').addEventListener('change', (e) => {
-            config.refreshTimeMin = parseFloat(e.target.value) || 1;
-            salvarConfig();
-            if (config.ativo) iniciarTimerRefreshGlobal();
-        });
+        const elRefresh = document.getElementById('tw-input-refresh');
+        if (elRefresh) {
+            elRefresh.addEventListener('change', (e) => {
+                config.refreshTimeMin = parseFloat(e.target.value) || 1;
+                salvarConfig();
+                if (config.ativo) iniciarTimerRefreshGlobal();
+            });
+        }
 
-        document.getElementById('tw-input-lim-quartel').addEventListener('change', (e) => {
-            config.limiteQuartel = parseInt(e.target.value) || 5;
-            salvarConfig();
-        });
+        const elLimQuartel = document.getElementById('tw-input-lim-quartel');
+        if (elLimQuartel) {
+            elLimQuartel.addEventListener('change', (e) => {
+                config.limiteQuartel = parseInt(e.target.value) || 5;
+                salvarConfig();
+            });
+        }
 
-        document.getElementById('tw-input-lim-estabulo').addEventListener('change', (e) => {
-            config.limiteEstabulo = parseInt(e.target.value) || 2;
-            salvarConfig();
-        });
+        const elLimEstabulo = document.getElementById('tw-input-lim-estabulo');
+        if (elLimEstabulo) {
+            elLimEstabulo.addEventListener('change', (e) => {
+                config.limiteEstabulo = parseInt(e.target.value) || 2;
+                salvarConfig();
+            });
+        }
 
-        document.getElementById('tw-input-lim-oficina').addEventListener('change', (e) => {
-            config.limiteOficina = parseInt(e.target.value) || 1;
-            salvarConfig();
-        });
+        const elLimOficina = document.getElementById('tw-input-lim-oficina');
+        if (elLimOficina) {
+            elLimOficina.addEventListener('change', (e) => {
+                config.limiteOficina = parseInt(e.target.value) || 1;
+                salvarConfig();
+            });
+        }
 
-        document.getElementById('tw-input-filas-max').addEventListener('change', (e) => {
-            config.filasMaximas = parseInt(e.target.value) || 1;
-            salvarConfig();
-        });
+        const elFilasMax = document.getElementById('tw-input-filas-max');
+        if (elFilasMax) {
+            elFilasMax.addEventListener('change', (e) => {
+                config.filasMaximas = parseInt(e.target.value) || 1;
+                salvarConfig();
+            });
+        }
 
-        document.getElementById('tw-btn-toggle').addEventListener('click', () => {
-            if (verificarCaptcha()) return;
+        const elBtnToggle = document.getElementById('tw-btn-toggle');
+        if (elBtnToggle) {
+            elBtnToggle.addEventListener('click', () => {
+                if (verificarCaptcha()) return;
 
-            config.ativo = !config.ativo;
-            salvarConfig();
+                config.ativo = !config.ativo;
+                salvarConfig();
 
-            const btnEl = document.getElementById('tw-btn-toggle');
-            btnEl.innerText = config.ativo ? 'Desligar Bot' : 'Ligar Bot';
-            btnEl.style.background = config.ativo ? '#990000' : '#7d5127';
+                const btnEl = document.getElementById('tw-btn-toggle');
+                if (btnEl) {
+                    btnEl.innerText = config.ativo ? 'Desligar Bot' : 'Ligar Bot';
+                    btnEl.style.background = config.ativo ? '#990000' : '#7d5127';
+                }
 
-            if (config.ativo) {
-                iniciarTimerRefreshGlobal();
-                executarCicloAldeia();
-            } else {
-                if (timerRegressivo) clearInterval(timerRegressivo);
-                document.title = tituloBaseAba;
-                atualizarStatusMsg('Status: <span style="color: #990000; font-weight: bold;">DESLIGADO</span>');
-                atualizarAcaoLog('Bot desligado.');
-            }
-        });
+                if (config.ativo) {
+                    iniciarTimerRefreshGlobal();
+                    executarCicloAldeia();
+                } else {
+                    if (timerRegressivo) clearInterval(timerRegressivo);
+                    document.title = tituloBaseAba;
+                    atualizarStatusMsg('Status: <span style="color: #990000; font-weight: bold;">DESLIGADO</span>');
+                    atualizarAcaoLog('Bot desligado.');
+                }
+            });
+        }
     }
 
     function obterDetalhesFilasEmAndamento(unitId) {
@@ -446,7 +456,8 @@
         }, delayAleatorio(500, 900));
     }
 
-    window.addEventListener('load', () => {
+    // Inicialização direta e tolerante a falhas do DOM
+    function inicializar() {
         criarPainel();
         if (verificarCaptcha()) return;
 
@@ -454,6 +465,11 @@
             iniciarTimerRefreshGlobal();
             setTimeout(executarCicloAldeia, 1000);
         }
-    });
+    }
 
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        inicializar();
+    } else {
+        window.addEventListener('load', inicializar);
+    }
 })();
