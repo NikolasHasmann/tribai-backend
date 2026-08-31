@@ -1,63 +1,53 @@
 export default async function handler(req, res) {
-    // Configura os cabeçalhos CORS para permitir requisição do Tribal Wars
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
+    if (req.method === 'OPTIONS') return res.status(200).end();
 
     if (req.method === 'POST') {
         try {
             const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
             const { license_key, script_target } = body;
 
-            // 1. Validar a Chave do Usuário
+            // 1. Validação da Licença
             if (!license_key || license_key !== 'KEY-TESTE-123') {
-                return res.status(403).send("Chave inválida ou não autorizada.");
+                return res.status(403).send("// Chave invalida");
             }
 
-            // 2. Definir qual script buscar (Default: loader_ui.js)
             const scriptFile = script_target || 'loader_ui.js';
-            
-            // Configurações do Repositório Privado
             const GITHUB_USER = 'NikolasHasmann';
             const GITHUB_REPO = 'tribai-backend';
-            const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // Lê a variável segura da Vercel
+            const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
             if (!GITHUB_TOKEN) {
-                return res.status(500).send("Erro no servidor: Token do GitHub não configurado na Vercel.");
+                return res.status(500).send("// Token ausente na Vercel");
             }
 
-            // 3. Buscar o arquivo privado via API Rest do GitHub com Autenticação
+            // 2. Busca o arquivo direto na API do GitHub
             const githubUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/scripts/${scriptFile}`;
-            
             const ghResponse = await fetch(githubUrl, {
                 headers: {
                     'Authorization': `Bearer ${GITHUB_TOKEN}`,
-                    'Accept': 'application/vnd.github.v3.raw', // Pede o conteúdo bruto em JS
-                    'User-Agent': 'Vercel-Serverless-App'
+                    'Accept': 'application/vnd.github.v3.raw',
+                    'User-Agent': 'Vercel-App'
                 }
             });
 
             if (!ghResponse.ok) {
-                return res.status(404).send(`Script '${scriptFile}' não encontrado no repositório privado.`);
+                return res.status(404).send(`// Script ${scriptFile} nao encontrado`);
             }
 
             const scriptCode = await ghResponse.text();
 
-            // 4. Retorna o Código JS Criptografado/Autorizado para o Navegador do Cliente
-            return res.status(200).json({
-                status: "autorizado",
-                code: scriptCode
-            });
+            // 3. Retorna o JS puro direto sem empacotar em JSON (Evita quebrar quebras de linha \n)
+            res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+            return res.status(200).send(scriptCode);
 
         } catch (err) {
-            console.error("Erro no handler:", err);
-            return res.status(500).send("Erro interno ao processar licença.");
+            return res.status(500).send("// Erro interno no servidor");
         }
     }
 
-    return res.status(405).json({ erro: 'Método não permitido' });
+    return res.status(405).send("// Metodo nao permitido");
 }
