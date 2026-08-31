@@ -1,13 +1,3 @@
-// ==UserScript==
-// @name         TW - Auto Coleta (AutoSave & Realtime Log) v5.2
-// @namespace    http://tampermonkey.net/
-// @version      5.2
-// @match        *://*.tribalwars.net/*screen=place&mode=scavenge*
-// @match        *://*.tribalwars.com.br/*screen=place&mode=scavenge*
-// @run-at       document-end
-// @grant        none
-// ==/UserScript==
-
 (function () {
     'use strict';
 
