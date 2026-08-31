@@ -59,9 +59,9 @@
     let timerRegressivo = null;
     let executandoPreenchimento = false;
     let captchaDetectado = false;
+    let inicializado = false;
     const tituloOriginalAba = document.title;
 
-    // Função de verificação e bloqueio contra Captcha / Bot Check
     function verificarEPararSeTemCaptcha() {
         const elementoCaptcha = document.querySelector("#bot_check_image, #botprotection_quest, #bot_check, .bot_check, iframe[src*='bot']");
         if (elementoCaptcha && elementoCaptcha.offsetParent !== null) {
@@ -72,7 +72,7 @@
             if (timerRegressivo) clearInterval(timerRegressivo);
 
             document.title = "⚠️ CAPTCHA DETECTADO! ⚠️";
-            atualizarStatusMsg('<span style="color: #ff0000; font-weight: bold; font-size: 12px; background: #fff0f0; padding: 2px 5px; border: 1px solid red;">⚠️ BOT PAUSADO: CAPTCHA DETECTADO! RESOLVA NA PÁGINA ⚠️</span>');
+            atualizarStatusMsg('<span style="color: #ff0000; font-weight: bold; font-size: 11px; background: #fff0f0; padding: 2px 5px; border: 1px solid red; border-radius: 3px;">⚠️ BOT PAUSADO: CAPTCHA DETECTADO! ⚠️</span>');
 
             const btnEl = document.getElementById('tw-btn-toggle');
             if (btnEl) {
@@ -141,9 +141,7 @@
     function obterQuantidadeConstruindoNaFilaDoJogo(edificioId) {
         let qtd = 0;
         const linhasFila = document.querySelectorAll(`#buildqueue tr.buildorder_${edificioId}, #build_queue tr.buildorder_${edificioId}`);
-        if (linhasFila && linhasFila.length > 0) {
-            return linhasFila.length;
-        }
+        if (linhasFila && linhasFila.length > 0) return linhasFila.length;
 
         const filaTable = document.querySelector('#build_queue') || document.querySelector('#buildqueue');
         if (!filaTable) return 0;
@@ -228,57 +226,87 @@
     }
 
     function criarPainel() {
-        if (!estaNaTelaPrincipal()) return;
+        if (!estaNaTelaPrincipal()) return false;
+        const container = document.querySelector('#content_value');
+        if (!container) return false;
+
         const antigo = document.getElementById('tw-panel-build');
         if (antigo) antigo.remove();
         recalcularMetas();
 
         const painel = document.createElement('div');
         painel.id = 'tw-panel-build';
-        painel.style.cssText = `position: relative; margin: 10px 0 15px 0; padding: 12px; background: #e3c696; border: 2px solid #7d5127; color: #331900; font-family: Verdana, Arial; font-size: 11px; z-index: 1; box-shadow: 1px 1px 4px rgba(0,0,0,0.3);`;
+        painel.style.cssText = `
+            position: relative; 
+            margin: 10px 0 15px 0; 
+            padding: 12px; 
+            background: #e3c696; 
+            border: 2px solid #7d5127; 
+            color: #331900; 
+            font-family: Verdana, Arial; 
+            font-size: 11px; 
+            z-index: 1; 
+            box-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+            border-radius: 4px;
+        `;
+
         painel.innerHTML = `
-            <div style="font-weight: bold; text-align: center; margin-bottom: 6px; font-size: 12px; border-bottom: 1px solid #7d5127; padding-bottom: 4px;">TribAI Bot (Starter) - Auto Construção v1.0</div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div style="font-weight: bold; text-align: center; margin-bottom: 8px; font-size: 12px; border-bottom: 1px solid #7d5127; padding-bottom: 4px;">
+                TribAI Bot - Auto Construção v1.1
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; background: #d4b583; padding: 6px; border: 1px solid #a27a4d; border-radius: 3px;">
                 <div id="tw-status-msg" style="font-size: 11px;">
                     Status: ${config.ativo ? '<span style="color: #008000; font-weight: bold;">LIGADO</span>' : '<span style="color: #990000; font-weight: bold;">DESLIGADO</span>'}
                 </div>
             </div>
+
             <div id="tw-grid-edificios" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 10px;"></div>
-            <div style="background: #d4b583; padding: 6px; border: 1px solid #a27a4d; margin-bottom: 10px; display: flex; flex-direction: column; gap: 6px;">
+
+            <div style="background: #d4b583; padding: 6px; border: 1px solid #a27a4d; border-radius: 3px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 6px;">
                 <label style="display: flex; align-items: center; gap: 6px; font-weight: bold; cursor: pointer;">
                     <input type="checkbox" id="tw-check-fazenda" ${config.priorizarFazenda ? 'checked' : ''}>
                     Priorizar Fazenda se Pop. Disponível <=
-                    <input type="number" id="tw-input-pop-min" value="${config.fazendaPopMin}" style="width: 50px; text-align: center;">
+                    <input type="number" id="tw-input-pop-min" value="${config.fazendaPopMin}" style="width: 50px; text-align: center; font-size: 11px; border: 1px solid #7d5127; border-radius: 2px;">
                 </label>
                 <label style="display: flex; align-items: center; gap: 6px; font-weight: bold; cursor: pointer; color: #006000;">
                     <input type="checkbox" id="tw-check-auto-free" ${config.autoFreeInstant ? 'checked' : ''}>
                     Finalizar grátis imediatamente (< 3 min)
                 </label>
             </div>
+
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
-                <label style="display: flex; justify-content: space-between; align-items: center;">Atualizar página (min): <input type="number" step="0.1" id="tw-input-refresh" value="${config.refreshTimeMin}" style="width: 55px; text-align: center;"></label>
+                <label style="display: flex; justify-content: space-between; align-items: center;">
+                    Atualizar página (min):
+                    <input type="number" step="0.1" id="tw-input-refresh" value="${config.refreshTimeMin}" style="width: 55px; text-align: center; font-size: 11px; border: 1px solid #7d5127; border-radius: 2px;">
+                </label>
                 <label style="display: flex; justify-content: space-between; align-items: center;">
                     Limite na fila:
-                    <input type="number" id="tw-input-max-fila" value="${config.maxFila}" min="1" max="${maxFilaPermitido}" style="width: 55px; text-align: center;" title="Sem CP: máx 2 | Com CP: máx 5">
+                    <input type="number" id="tw-input-max-fila" value="${config.maxFila}" min="1" max="${maxFilaPermitido}" style="width: 55px; text-align: center; font-size: 11px; border: 1px solid #7d5127; border-radius: 2px;" title="Sem CP: máx 2 | Com CP: máx 5">
                 </label>
             </div>
+
             <div style="margin-bottom: 10px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                     <span style="font-weight: bold;">Fila Planejada:</span>
-                    <button id="tw-btn-reset-fila" style="background: #a27a4d; color: #fff; border: 1px solid #331900; font-size: 9px; cursor: pointer; padding: 2px 5px;">Resetar Fila</button>
+                    <button id="tw-btn-reset-fila" style="background: #a27a4d; color: #fff; border: 1px solid #331900; font-size: 9px; cursor: pointer; padding: 2px 5px; border-radius: 2px;">Resetar Fila</button>
                 </div>
-                <div id="tw-queue-list-container" style="background: #cbb082; padding: 4px; border: 1px solid #7d5127; max-height: 250px; overflow-y: auto;"></div>
+                <div id="tw-queue-list-container" style="background: #cbb082; padding: 4px; border: 1px solid #7d5127; border-radius: 3px; max-height: 250px; overflow-y: auto;"></div>
             </div>
-            <div style="display: flex; gap: 8px;">
-                <button id="tw-btn-toggle" style="flex: 1; padding: 8px; background: ${config.ativo ? '#990000' : '#4CAF50'}; color: #fff; font-weight: bold; border: 1px solid #331900; cursor: pointer; font-size: 12px;">${config.ativo ? 'Desligar Bot' : 'Ligar Bot'}</button>
-            </div>`;
 
-        const container = document.querySelector('#content_value');
-        if (container) container.insertBefore(painel, container.firstChild);
+            <div style="display: flex; gap: 8px;">
+                <button id="tw-btn-toggle" style="flex: 1; padding: 8px; background: ${config.ativo ? '#990000' : '#4CAF50'}; color: #fff; font-weight: bold; border: 1px solid #331900; cursor: pointer; font-size: 12px; border-radius: 3px;">
+                    ${config.ativo ? 'Desligar Bot' : 'Ligar Bot'}
+                </button>
+            </div>
+        `;
+
+        container.insertBefore(painel, container.firstChild);
         renderizarGridEdificios();
         renderizarFilaLista();
         registrarListeners();
         iniciarObservadorFilaJogo();
+        return true;
     }
 
     function renderizarGridEdificios() {
@@ -300,19 +328,19 @@
             let textoNivel = `(${nivelBase}${tagProducao})`;
 
             if (metaAtual > nivelProjetadoJogo) {
-                textoNivel = `(${nivelBase}${tagProducao} ➜ <span style="color: #008000; font-weight: bold; background: #c2eabd; padding: 0 2px;">${metaAtual}</span>)`;
+                textoNivel = `(${nivelBase}${tagProducao} ➜ <span style="color: #008000; font-weight: bold; background: #c2eabd; padding: 0 2px; border-radius: 2px;">${metaAtual}</span>)`;
             }
 
             const div = document.createElement('div');
-            div.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: #d4b583; padding: 3px 6px; border: 1px solid #a27a4d;';
+            div.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: #d4b583; padding: 3px 6px; border: 1px solid #a27a4d; border-radius: 2px;';
             div.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 4px; overflow: hidden; white-space: nowrap;">
-                    <img src="${b.icon}" style="width: 16px; height: 16px;">
+                    <img src="${b.icon}" style="width: 16px; height: 16px; object-fit: contain;">
                     <span style="font-weight: bold; font-size: 10px;">${b.nome} ${textoNivel}</span>
                 </div>
                 <div style="display: flex; gap: 2px;">
-                    <button class="tw-btn-lvl-minus" data-id="${b.id}" style="width: 20px; height: 18px;" ${!podeMinus ? 'disabled' : ''}>-</button>
-                    <button class="tw-btn-lvl-plus" data-id="${b.id}" style="width: 20px; height: 18px;" ${!podePlus ? 'disabled' : ''}>+</button>
+                    <button class="tw-btn-lvl-minus" data-id="${b.id}" style="width: 20px; height: 18px; border: 1px solid #7d5127; border-radius: 2px; font-weight: bold; cursor: pointer;" ${!podeMinus ? 'disabled' : ''}>-</button>
+                    <button class="tw-btn-lvl-plus" data-id="${b.id}" style="width: 20px; height: 18px; border: 1px solid #7d5127; border-radius: 2px; font-weight: bold; cursor: pointer;" ${!podePlus ? 'disabled' : ''}>+</button>
                 </div>`;
             grid.appendChild(div);
         });
@@ -406,14 +434,14 @@
                 <td style="padding: 4px; font-weight: bold; width: 15px; vertical-align: top;">${index + 1}.</td>
                 <td style="padding: 4px; vertical-align: top;">
                     <div style="display: flex; align-items: center; gap: 4px; font-weight: bold;">
-                        <img src="${ed.icon}" style="width: 14px; height: 14px;"> ${ed.nome} (Nível ${itemData.nivel})
+                        <img src="${ed.icon}" style="width: 14px; height: 14px; object-fit: contain;"> ${ed.nome} (Nível ${itemData.nivel})
                     </div>
                     <div style="font-size: 9px; color: ${corStatus}; margin-top: 2px; font-style: italic;">↳ ${statusTexto}</div>
                 </td>
                 <td style="padding: 4px; text-align: right; width: 65px; vertical-align: top;">
-                    <button class="tw-btn-move-up" data-index="${index}" ${index === 0 ? 'disabled' : ''}>▲</button>
-                    <button class="tw-btn-move-down" data-index="${index}" ${index === config.filaCustom.length - 1 ? 'disabled' : ''}>▼</button>
-                    <button class="tw-btn-remove-item" data-index="${index}" style="color: red; font-weight: bold;">X</button>
+                    <button class="tw-btn-move-up" data-index="${index}" style="padding: 1px 3px; cursor: pointer;" ${index === 0 ? 'disabled' : ''}>▲</button>
+                    <button class="tw-btn-move-down" data-index="${index}" style="padding: 1px 3px; cursor: pointer;" ${index === config.filaCustom.length - 1 ? 'disabled' : ''}>▼</button>
+                    <button class="tw-btn-remove-item" data-index="${index}" style="padding: 1px 3px; cursor: pointer; color: red; font-weight: bold;">X</button>
                 </td>`;
 
             table.appendChild(tr);
@@ -506,7 +534,6 @@
         if (statusEl) statusEl.innerHTML = msgHtml;
     }
 
-    // Timer com atualização visual no título da aba (document.title)
     function iniciarContadorRegressivo(segundosTotais) {
         if (timerRegressivo) clearInterval(timerRegressivo);
         let tempoRestante = Math.round(segundosTotais);
@@ -665,14 +692,21 @@
         iniciarContadorRegressivo(Math.round(config.refreshTimeMin * 60));
     }
 
-    window.addEventListener('load', () => {
-        criarPainel();
+    function init() {
+        if (inicializado) return;
+
+        if (!criarPainel()) {
+            setTimeout(init, 300);
+            return;
+        }
+
+        inicializado = true;
 
         if (verificarEPararSeTemCaptcha()) return;
 
         if (config.ativo) {
             iniciarTimerRefreshGlobal();
-            setTimeout(preencherFilaAteOLimite, 2000);
+            setTimeout(preencherFilaAteOLimite, 1000);
 
             setInterval(() => {
                 if (!verificarEPararSeTemCaptcha() && config.ativo) {
@@ -682,6 +716,22 @@
                 }
             }, 3000);
         }
+    }
+
+    // Inicialização direta, compatível com o Loader via GitHub
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        init();
+    } else {
+        window.addEventListener('DOMContentLoaded', init);
+        window.addEventListener('load', init);
+    }
+
+    // Observador para restaurar o painel caso a UI reescreva o container
+    const bodyObserver = new MutationObserver(() => {
+        if (estaNaTelaPrincipal() && !document.getElementById('tw-panel-build')) {
+            criarPainel();
+        }
     });
+    bodyObserver.observe(document.body, { childList: true, subtree: true });
 
 })();
