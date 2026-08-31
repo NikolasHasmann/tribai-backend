@@ -28,7 +28,9 @@
 
     let executando = false;
     let workerTimer = null;
-        
+    let inicializado = false;
+    const tituloOriginalAba = document.title;
+
     function estaNaTelaColeta() {
         return window.location.href.includes('screen=place') && window.location.href.includes('mode=scavenge');
     }
@@ -50,10 +52,17 @@
     }
 
     function verificarCaptcha() {
-        if (document.querySelector('#botprotect_quest, #bot_check, img[src*="captcha"]') || sessionStorage.getItem('tw_captcha_desconectando')) {
+        if (document.querySelector('#botprotect_quest, #bot_check, #bot_check_image, .bot_check, img[src*="captcha"]') || sessionStorage.getItem('tw_captcha_desconectando')) {
             console.log("CAPTCHA detectado! Ação abortada pelo script.");
             atualizarAcaoLog('🚨 CAPTCHA DETECTADO! Bot pausado.', '#8b0000');
             atualizarStatusMsg('Status: <span style="color: #990000; font-weight: bold;">DESLIGADO</span>');
+            
+            const btnEl = document.getElementById('tw-btn-toggle');
+            if (btnEl) {
+                btnEl.innerText = 'PAUSADO POR CAPTCHA';
+                btnEl.style.background = '#ff0000';
+                btnEl.disabled = true;
+            }
             return true;
         }
         return false;
@@ -74,7 +83,6 @@
         }
     }
 
-    // Timer imune ao congelamento de abas em segundo plano
     function iniciarContadorAntiThrottling(segundosTotais, acaoAoFinal) {
         if (workerTimer) workerTimer.terminate();
 
@@ -93,7 +101,7 @@
             let tempoRestante = e.data;
 
             if (!config.ativo) {
-                document.title = 'AUTO COLETA (OFF)';
+                document.title = tituloOriginalAba;
                 atualizarStatusMsg('Status: <span style="color: #990000; font-weight: bold;">DESLIGADO</span>');
                 atualizarAcaoLog('Bot desligado.', '#888');
                 workerTimer.terminate();
@@ -144,18 +152,27 @@
     }
 
     function criarPainel() {
-        if (!estaNaTelaColeta()) return;
+        if (!estaNaTelaColeta()) return false;
+        const container = document.querySelector('#content_value');
+        if (!container) return false;
 
-        document.title = 'AUTO COLETA';
-
-        if (document.getElementById('tw-panel-scavenge')) return;
+        const antigo = document.getElementById('tw-panel-scavenge');
+        if (antigo) antigo.remove();
 
         const painel = document.createElement('div');
         painel.id = 'tw-panel-scavenge';
         painel.style.cssText = `
-            position: relative; margin: 10px 0 15px 0; padding: 12px; background: #e3c696;
-            border: 2px solid #7d5127; color: #331900; font-family: Verdana, Arial;
-            font-size: 11px; z-index: 1; box-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+            position: relative; 
+            margin: 10px 0 15px 0; 
+            padding: 12px; 
+            background: #e3c696;
+            border: 2px solid #7d5127; 
+            color: #331900; 
+            font-family: Verdana, Arial;
+            font-size: 11px; 
+            z-index: 1; 
+            box-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+            border-radius: 4px;
         `;
 
         let colunasUnidadesHTML = '';
@@ -168,18 +185,18 @@
                         <img src="${u.icon}" alt="${u.nome}" style="width: 18px; height: 18px; object-fit: contain;">
                     </div>
                     <input type="checkbox" class="tw-check-unit" data-unit="${u.id}" ${checked} style="margin-top: 2px; cursor: pointer;">
-                    <input type="number" class="tw-input-manter" data-unit="${u.id}" value="${manterVal}" title="Manter na Aldeia" style="width: 42px; text-align: center; font-size: 10px; margin-top: 4px;">
+                    <input type="number" class="tw-input-manter" data-unit="${u.id}" value="${manterVal}" title="Manter na Aldeia" style="width: 42px; text-align: center; font-size: 10px; margin-top: 4px; border: 1px solid #7d5127; border-radius: 2px;">
                 </div>
             `;
         });
 
         painel.innerHTML = `
             <div style="font-weight: bold; text-align: center; margin-bottom: 4px; font-size: 12px;">
-                TribAI Bot (Starter) - Auto Coleta v1.0
+                TribAI Bot - Auto Coleta v1.0
             </div>
             <hr style="border: 0; border-top: 1px solid #7d5127; margin: 4px 0 8px 0;">
 
-            <div id="tw-log-acao" style="background: #d4b583; padding: 6px; border: 1px solid #a27a4d; text-align: center; font-weight: bold; font-size: 11px; color: #331900; margin-bottom: 8px;">
+            <div id="tw-log-acao" style="background: #d4b583; padding: 6px; border: 1px solid #a27a4d; text-align: center; font-weight: bold; font-size: 11px; color: #331900; margin-bottom: 8px; border-radius: 3px;">
                 Iniciando...
             </div>
 
@@ -187,30 +204,27 @@
                 Status: ${config.ativo ? '<span style="color: #008000; font-weight: bold;">LIGADO</span>' : '<span style="color: #990000; font-weight: bold;">DESLIGADO</span>'}
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(${UNIDADES_COLETA.length}, 1fr); gap: 4px; background: #d4b583; padding: 6px; border: 1px solid #a27a4d; margin-bottom: 10px;">
+            <div style="display: grid; grid-template-columns: repeat(${UNIDADES_COLETA.length}, 1fr); gap: 4px; background: #d4b583; padding: 6px; border: 1px solid #a27a4d; border-radius: 3px; margin-bottom: 10px;">
                 ${colunasUnidadesHTML}
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr; gap: 4px; margin-bottom: 10px;">
                 <label style="display: flex; justify-content: space-between; align-items: center;">
                     Máximo de Horas por Coleta (0 = Sem limite):
-                    <input type="number" id="tw-input-max-horas" value="${config.maxHorasColeta}" step="0.5" min="0" style="width: 60px; text-align: center;">
+                    <input type="number" id="tw-input-max-horas" value="${config.maxHorasColeta}" step="0.5" min="0" style="width: 60px; text-align: center; font-size: 11px; border: 1px solid #7d5127; border-radius: 2px;">
                 </label>
             </div>
 
             <div style="display: flex; gap: 8px;">
-                <button id="tw-btn-toggle" style="width: 100%; padding: 6px; background: ${config.ativo ? '#990000' : '#7d5127'}; color: #fff; font-weight: bold; border: 1px solid #331900; cursor: pointer;">
+                <button id="tw-btn-toggle" style="width: 100%; padding: 6px; background: ${config.ativo ? '#990000' : '#7d5127'}; color: #fff; font-weight: bold; border: 1px solid #331900; cursor: pointer; border-radius: 3px;">
                     ${config.ativo ? 'Desligar Bot' : 'Ligar Bot'}
                 </button>
             </div>
         `;
 
-        const container = document.querySelector('#content_value');
-        if (container) {
-            container.insertBefore(painel, container.firstChild);
-        }
-
+        container.insertBefore(painel, container.firstChild);
         registrarListeners();
+        return true;
     }
 
     function registrarListeners() {
@@ -250,7 +264,7 @@
                 executarCicloColeta();
             } else {
                 if (workerTimer) workerTimer.terminate();
-                document.title = 'AUTO COLETA (OFF)';
+                document.title = tituloOriginalAba;
                 atualizarStatusMsg('Status: <span style="color: #990000; font-weight: bold;">DESLIGADO</span>');
                 atualizarAcaoLog('Bot desligado.', '#888');
             }
@@ -454,13 +468,35 @@
         }, delayAleatorio(500, 900));
     }
 
-    window.addEventListener('load', () => {
-        criarPainel();
+    function init() {
+        if (inicializado) return;
+
+        if (!criarPainel()) {
+            setTimeout(init, 300);
+            return;
+        }
+
+        inicializado = true;
+
         if (verificarCaptcha()) return;
 
         if (config.ativo) {
             executarCicloColeta();
         }
+    }
+
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        init();
+    } else {
+        window.addEventListener('DOMContentLoaded', init);
+        window.addEventListener('load', init);
+    }
+
+    const bodyObserver = new MutationObserver(() => {
+        if (estaNaTelaColeta() && !document.getElementById('tw-panel-scavenge')) {
+            criarPainel();
+        }
     });
+    bodyObserver.observe(document.body, { childList: true, subtree: true });
 
 })();
