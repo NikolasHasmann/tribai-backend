@@ -1,3 +1,15 @@
+// ==UserScript==
+// @name         TribAI Bot - Auto Construção (Loader Ready)
+// @namespace    http://tampermonkey.net/
+// @version      1.1
+// @description  Automação de construção com inicialização resiliente para loaders dinâmicos
+// @author       TribAI
+// @match        *://*.tribalwars.com.br/*screen=main*
+// @match        *://*.tribalwars.net/*screen=main*
+// @run-at       document-end
+// @grant        none
+// ==/UserScript==
+
 (function() {
     'use strict';
 
