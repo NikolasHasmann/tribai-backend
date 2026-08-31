@@ -1,3 +1,15 @@
+// ==UserScript==
+// @name         TribAI Bot - Auto Coleta
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Automação inteligente e sincronizada de coleta para Tribal Wars (Loader Ready)
+// @author       TribAI
+// @match        *://*.tribalwars.com.br/*screen=place*mode=scavenge*
+// @match        *://*.tribalwars.net/*screen=place*mode=scavenge*
+// @run-at       document-end
+// @grant        none
+// ==/UserScript==
+
 (function () {
     'use strict';
 
