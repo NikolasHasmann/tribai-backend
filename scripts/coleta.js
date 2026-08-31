@@ -28,13 +28,10 @@
 
     let executando = false;
     let workerTimer = null;
-
-    function criarPainel() {
-    console.log("Tentando criar painel...");
         
-    //function estaNaTelaColeta() {
-        //return window.location.href.includes('screen=place') && window.location.href.includes('mode=scavenge');
-    //}
+    function estaNaTelaColeta() {
+        return window.location.href.includes('screen=place') && window.location.href.includes('mode=scavenge');
+    }
 
     function delayHumano() {
         const ms = Math.floor(Math.random() * (3500 - 2000 + 1)) + 2000;
