@@ -1,13 +1,3 @@
-// ==UserScript==
-// @name         TW - Construção Automática (v23.0 - Captcha & Title Update)
-// @namespace    http://tampermonkey.net/
-// @version      23.0
-// @match        *://*.tribalwars.net/*screen=main*
-// @match        *://*.tribalwars.com.br/*screen=main*
-// @run-at       document-end
-// @grant        none
-// ==/UserScript==
-
 (function() {
     'use strict';
 
