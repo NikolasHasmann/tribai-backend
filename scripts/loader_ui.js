@@ -283,7 +283,10 @@
         }
     });
 
-    window.addEventListener('load', () => {
-        criarIconeLauncher();
-    });
+    criarIconeLauncher();
+
+    // Re-tentativa de segurança caso a barra de missões do jogo demore a carregar
+    setTimeout(criarIconeLauncher, 500);
+    setTimeout(criarIconeLauncher, 1500);
+    })();
 })();
