@@ -1,16 +1,3 @@
-// ==UserScript==
-// @name         TribAI Bot Starter - Engine & UI (v10.0)
-// @namespace    http://tampermonkey.net/
-// @version      10.0.0
-// @match        *://*.tribalwars.net/*
-// @match        *://*.tribalwars.com.br/*
-// @match        *://*.tribalwars.com/*
-// @match        *://*.tribalwars.pt/*
-// @connect      tribai-backend.vercel.app
-// @run-at       document-end
-// @grant        none
-// ==/UserScript==
-
 (function() {
     'use strict';
 
