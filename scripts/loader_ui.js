@@ -6,6 +6,7 @@
         let nick = "Desconhecido";
         let mundoServidor = "BR";
 
+        // Nickname via API nativa game_data ou DOM fallback
         if (typeof window.game_data !== 'undefined' && window.game_data.player && window.game_data.player.name) {
             nick = window.game_data.player.name;
         } else {
@@ -13,6 +14,7 @@
             if (elNick) nick = elNick.innerText.trim();
         }
 
+        // Extração do Servidor e Mundo via URL (Ex: https://en157.tribalwars.net/...)
         const host = window.location.hostname;
         const matchUrl = host.match(/^([a-z]+)(\d+)\.tribalwars/i);
         if (matchUrl) {
@@ -66,7 +68,7 @@
         return `${dias}d ${horas}h restantes`;
     }
 
-    // 3. INJEÇÃO DO ÍCONE LAUNCHER
+    // 3. INJEÇÃO DO ÍCONE LAUNCHER (ALINHADO À DIREITA COM AS MISSÕES)
     function criarIconeLauncher() {
         if (document.getElementById('tribai-launcher-btn')) return;
 
@@ -78,7 +80,7 @@
         btnLauncher.style.cssText = `
             position: relative;
             display: block;
-            margin: 6px 0 0 11px;
+            margin: 6px 0 0 12px;
             cursor: pointer;
             width: 26px;
             height: 26px;
@@ -255,6 +257,7 @@
         });
     }
 
+    // Renderiza a linha de módulo com abertura em nova aba (target="_blank")
     function renderModuloRow(key, label, ativo, urlAtalho) {
         return `
             <div style="display: flex; justify-content: space-between; align-items: center; background: #f4e8c1; padding: 6px 10px; border: 1px solid #a2825b; border-radius: 3px;">
@@ -280,8 +283,7 @@
         }
     });
 
-    // 6. EXECUÇÃO DIRETA E RETENTATIVAS DE SEGURANÇA
-    criarIconeLauncher();
-    setTimeout(criarIconeLauncher, 500);
-    setTimeout(criarIconeLauncher, 1500);
+    window.addEventListener('load', () => {
+        criarIconeLauncher();
+    });
 })();
